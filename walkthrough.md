@@ -64,8 +64,6 @@ graph LR
 | Observation (6D) | `[cos α, sin α, cos θ, sin θ, α̇, θ̇]` | Trig encoding avoids discontinuities |
 | Action | Scalar in `[-1, 1]` | Scaled to `±max_voltage` (12V) |
 
-> [!NOTE]
-> The naming is **swapped** from the original furuta-master repo: here THETA = pendulum (repo used ALPHA) and ALPHA = arm (repo used THETA). The physics state layout `[arm, pend, arm_vel, pend_vel]` is unchanged.
 
 ---
 
