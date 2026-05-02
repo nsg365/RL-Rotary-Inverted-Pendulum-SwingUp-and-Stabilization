@@ -5,5 +5,4 @@ __pycache__/
 *.pyo
 *.pyd
 venv/
-runs/
 buffer.pkl
