@@ -126,18 +126,11 @@ class FurutaReal(FurutaBase):
         The sim expects theta=0 UPRIGHT, theta=+-pi HANGING. Shift by pi."""
         return FurutaReal._wrap(th_arduino + np.pi)
 
-    def _read_and_update(self, action_norm: float, state: np.ndarray):
+    def _read_and_update(self, action_norm: float):
         """Send one voltage command, read one fresh state packet, update state."""
         raw_volts = float(np.clip(action_norm, -1.0, 1.0)) * self.max_voltage
         a = self.action_smoothing
-        theta_pend_from_state = state[1]
-        if abs(theta_pend_from_state) < np.deg2rad(15):
-            # If we're near upright, it's especially important to minimize latency and jitter.
-            # Bypass the smoothing filter for more responsive balancing.
-            a = 1.0
-            volts = (1.0 - a) * self._prev_volts + a * raw_volts
-        else:
-            volts = (1.0 - a) * self._prev_volts + a * raw_volts
+        volts = (1.0 - a) * self._prev_volts + a * raw_volts
         self._prev_volts = volts
         self.robot.send_voltage(volts)
         th_pend, th_arm, om_pend, om_arm = self.robot.read_state()
@@ -145,7 +138,7 @@ class FurutaReal(FurutaBase):
         self._state = np.array([th_arm, th_pend, om_arm, om_pend], dtype=np.float32)
 
     def _update_state(self, a):
-        self._read_and_update(a, self._state)
+        self._read_and_update(a)
 
     def reset(self, seed: Optional[int] = None, options: Optional[dict] = None):
         super().reset(seed=seed, options=options)
