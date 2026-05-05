@@ -42,7 +42,7 @@ def main():
     # recenter the arm, and wait for the pendulum to hang perfectly still.
     obs, _ = env.reset()
 
-    BALANCE_THRESH = np.deg2rad(15.0)
+    BALANCE_THRESH = np.deg2rad(10.0)
 
     try:
         while True:
@@ -51,7 +51,7 @@ def main():
             theta_pend = env._state[1] 
             print(f"State vector:",env._state[0], env._state[1], env._state[2], env._state[3], flush=True)
 
-            # Check if pendulum is within 15 degrees of upright (0 radians)
+            # Check if pendulum is within 10 degrees of upright (0 radians)
             if abs(theta_pend) <= BALANCE_THRESH:
                 # ==========================================
                 # REGIME 1: FULL STATE FEEDBACK (Balancing)
@@ -59,8 +59,20 @@ def main():
                 
                 # Replace these values with your actual calculated K matrix!
                 # Order matters: [k_arm, k_pend, k_arm_dot, k_pend_dot]
-                K = np.array([0.25 * -4.4681, 0.75 * -39.5037, 0.5 * -1.6210, 0.6 * -5.0402]) 
-                k_prev = -0.4387
+                # K = np.array([0.5 * -4.4681, 1.0 * -39.5037, 0.5 * -1.6210, 0.75 * -5.0402]) 
+                # k_prev = 0.5 * -0.4387
+
+                # K = np.array([0.5 * -4.4681, 1.55 * -39.5037, 0.5 * -1.6210, 0.6 * -5.0402]) 
+                # k_prev = 0.75 * -0.4387
+
+                # K = np.array([0.4 * -4.4681, 1.38 * -39.5037, 0.5 * -1.6210, 0.5 * -5.0402]) 
+                # k_prev = 0.75 * -0.4387
+
+                K = np.array([0.2 * -4.4681, 1.38 * -39.5037, 0.5 * -1.6210, 0.5 * -5.0402]) 
+                k_prev = 0.75 * -0.4387
+
+                # K = np.array([0.5 * -4.4681, 1.7 * -39.5037, 0.5 * -1.6210, 0.5 * -5.0402]) 
+                # k_prev = 0
                 
                 # The control law: u = -Kx
                 # np.dot multiplies the arrays element-wise and sums them up

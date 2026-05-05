@@ -94,7 +94,7 @@ class FurutaReal(FurutaBase):
 
     # Arm auto-recenter (runs before the hanging-settle wait)
     ARM_CENTER_DEG = 15.0     # acceptable arm zone at reset start
-    ARM_RECENTER_VOLTS = 3.5  # gentle corrective voltage
+    ARM_RECENTER_VOLTS = 2  # gentle corrective voltage
     ARM_RECENTER_SEC = 3.0    # cap time spent recentering
 
     def __init__(
@@ -126,11 +126,18 @@ class FurutaReal(FurutaBase):
         The sim expects theta=0 UPRIGHT, theta=+-pi HANGING. Shift by pi."""
         return FurutaReal._wrap(th_arduino + np.pi)
 
-    def _read_and_update(self, action_norm: float):
+    def _read_and_update(self, action_norm: float, state: np.ndarray):
         """Send one voltage command, read one fresh state packet, update state."""
         raw_volts = float(np.clip(action_norm, -1.0, 1.0)) * self.max_voltage
         a = self.action_smoothing
-        volts = (1.0 - a) * self._prev_volts + a * raw_volts
+        theta_pend_from_state = state[1]
+        if abs(theta_pend_from_state) < np.deg2rad(10):
+            # If we're near upright, it's especially important to minimize latency and jitter.
+            # Bypass the smoothing filter for more responsive balancing.
+            a = 1.0
+            volts = (1.0 - a) * self._prev_volts + a * raw_volts
+        else:
+            volts = (1.0 - a) * self._prev_volts + a * raw_volts
         self._prev_volts = volts
         self.robot.send_voltage(volts)
         th_pend, th_arm, om_pend, om_arm = self.robot.read_state()
@@ -138,7 +145,7 @@ class FurutaReal(FurutaBase):
         self._state = np.array([th_arm, th_pend, om_arm, om_pend], dtype=np.float32)
 
     def _update_state(self, a):
-        self._read_and_update(a)
+        self._read_and_update(a, self._state)
 
     def reset(self, seed: Optional[int] = None, options: Optional[dict] = None):
         super().reset(seed=seed, options=options)
@@ -155,7 +162,7 @@ class FurutaReal(FurutaBase):
                 self.robot.send_voltage(0.0)
                 break
             # push arm toward 0: if th_arm > 0 we need negative voltage (and vice-versa)
-            v = -np.sign(th_arm) * self.ARM_RECENTER_VOLTS
+            v = -np.sign(th_arm) * self.ARM_RECENTER_VOLTS 
             self.robot.send_voltage(float(v))
         self.robot.send_voltage(0.0)
 

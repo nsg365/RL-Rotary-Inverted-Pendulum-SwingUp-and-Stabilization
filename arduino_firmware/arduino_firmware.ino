@@ -23,7 +23,7 @@ const float SUPPLY_VOLTAGE = 12.0;
 const int   ENC_CPR        = 2000;
 const float TICK_TO_RAD    = (2.0 * PI) / ENC_CPR;
 
-const int   LOOP_HZ        = 100;
+const int   LOOP_HZ        = 400;
 const float DT             = 1.0 / LOOP_HZ;
 const int   SAFETY_TIMEOUT = 100;   // ms without command -> motor off
 

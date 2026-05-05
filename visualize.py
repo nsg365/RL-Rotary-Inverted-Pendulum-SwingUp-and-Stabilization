@@ -59,13 +59,12 @@ def get_coords(state):
     ay = Lr * np.sin(arm)
     az = 0.0
 
-    # Pendulum hangs off the arm tip. Its rotation axis is the arm's radial
-    # direction; theta measures angle from vertical (+z = upright).
-    # Radial outward unit vector at the arm tip: (cos(arm), sin(arm), 0)
-    # Tangent (in-plane, perpendicular to arm) unit vector: (-sin(arm), cos(arm), 0)
-    # Swing direction for the pendulum is along that tangent.
-    px = ax - lp * np.sin(pend) * np.sin(arm)
-    py = ay + lp * np.sin(pend) * np.cos(arm)
+    # Right-sided coordinate system to prevent visual stretching.
+    # Pendulum swings along the arm's radius if mounted parallel.
+    # If the pendulum is mounted perpendicular to the arm, it swings perpendicularly.
+    # Adjust this specific to your custom hardware mount.
+    px = ax + lp * np.sin(pend) * np.sin(arm)
+    py = ay - lp * np.sin(pend) * np.cos(arm)
     pz = az + lp * np.cos(pend)
     return (0, 0, 0), (ax, ay, az), (px, py, pz)
 
@@ -82,8 +81,15 @@ def run(model_path, start_angle_deg=None, episode_len=5000, no_model=False,
 
     model = None
     if not no_model:
-        from stable_baselines3 import SAC
-        model = SAC.load(model_path)
+        from sbx import CrossQ
+        # Try CrossQ first, fallback if it's actually PyTorch SAC
+        try:
+            model = CrossQ.load(model_path)
+            print(f"Loaded CrossQ model from {model_path}.")
+        except Exception:
+            from stable_baselines3 import SAC
+            model = SAC.load(model_path)
+            print(f"Loaded Native SAC model from {model_path}.")
 
     obs, _ = env.reset()
     if start_angle_deg is not None:

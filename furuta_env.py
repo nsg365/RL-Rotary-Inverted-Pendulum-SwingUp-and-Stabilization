@@ -27,18 +27,27 @@ from qube_dynamics import QubeDynamics
 # --- reward (repo math, flipped so upright is theta = 0) ---
 
 def pendulum_reward(state):
-    # max 1 at theta = 0 (upright), 0 at theta = +-pi (hanging)
-    return (1 + np.cos(state[THETA])) / 2
-
+    # Sharp exponential reward pointing to theta=0 (UPRIGHT). 
+    # At theta=0 -> reward=1. At theta=pi/2 (90deg) -> reward is almost 0.
+    return np.exp(-4.0 * (state[THETA] ** 2))
 
 def arm_reward(state):
     # soft penalty for large arm angle (same shape as repo's theta_reward)
     arm_rew = (np.cos(state[ALPHA] + np.pi) + 1) / 2
     return 1 - arm_rew**2
 
+# def cos_alpha_reward(state):
+#     return pendulum_reward(state) * arm_reward(state)
 
 def cos_alpha_reward(state):
-    return pendulum_reward(state) * arm_reward(state)
+    # Old shape: (1 + np.cos(state[THETA])) / 2
+    # New shape: Only give significant reward when it is VERY close to upright.
+    
+    pend_angle = state[THETA]
+    # Sharp exponential reward: drops off to near 0 very quickly the further from upright it is
+    pend_rew = np.exp(-3.0 * (pend_angle ** 2)) 
+    
+    return pend_rew * arm_reward(state)
 
 
 def exp_pendulum_reward(state, exp=2):
