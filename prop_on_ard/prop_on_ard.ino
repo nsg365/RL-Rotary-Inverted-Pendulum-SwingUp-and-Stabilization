@@ -112,7 +112,7 @@ void loop() {
     float pendVel   = omegaPendFiltered * PEND_SIGN;
     float armVel    = omegaArmFiltered  * ARM_SIGN;
 
-    // 1. Send state packet exactly as Python expects
+    // 1. Send state packet exactly as Python expects.
     StatePacket pkt;
     pkt.thetaPend = pendAngle;
     pkt.thetaArm  = armAngle;
