@@ -1,5 +1,4 @@
-"""Furuta simulation env — logic copied from furuta-master
-(furuta/rl/envs/furuta_base.py + furuta_sim.py).
+"""Furuta simulation env
 
 Convention:
     THETA = pendulum, THETA = 0 UPRIGHT, THETA = +-pi HANGING
