@@ -1,13 +1,13 @@
-"""QubeDynamics class — interface preserved from furuta-master
+"""QubeDynamics class 
 (action in [-1, 1], params/randomize API, returns (arm_acc, pend_acc)),
 but the equations of motion are the user's original parallel-axis form
 from the pre-adaptation furuta_env.py.
 
-Convention (matches swing-up/furuta_env.py):
+Convention:
     state = [arm_angle, pend_angle, arm_vel, pend_vel]   (ALPHA, THETA, ... indexing)
     pend_angle = 0 at UPRIGHT, +-pi at HANGING (unstable equilibrium at 0)
 
-Equations (user's original, renamed to match this state layout):
+Equations :
 
     tau  = kt * (V - km * arm_vel) / Rm
     M11  = Mp*lp^2*sin^2(pend) + Jr + Mp*Lr^2
