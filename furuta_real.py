@@ -1,5 +1,4 @@
-"""Hardware env — equivalent of furuta-master/furuta/rl/envs/furuta_real.py,
-adapted to the user's Arduino firmware protocol.
+"""Hardware env 
 
 Serial protocol (matches arduino_firmware.ino):
     RX (from Arduino at 100 Hz):
