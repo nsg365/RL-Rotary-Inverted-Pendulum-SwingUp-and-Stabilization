@@ -5,7 +5,7 @@
 This is a **sim-to-real reinforcement learning project** for a [Furuta (rotary inverted) pendulum](https://en.wikipedia.org/wiki/Furuta_pendulum). The goal: train an RL agent (SAC + gSDE) to **swing the pendulum from hanging → upright** and balance it there, first in simulation, then fine-tune on real hardware.
 
 > [!IMPORTANT]
-> This is a 6th semester EDL (Engineering Design Lab) college project — real physical hardware controlled by a neural network in real-time.
+> This is a 6th semester EDL (Electronics Design Lab) college project — real physical hardware controlled by a neural network in real-time.
 
 ---
 
