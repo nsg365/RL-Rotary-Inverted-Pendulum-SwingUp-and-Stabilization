@@ -9,7 +9,7 @@ const int motArmDir   = 4;
 
 const float PEND_SIGN  = -1.0;
 const float ARM_SIGN   =  1.0;
-const float MOTOR_SIGN =  1.0;
+const float MOTOR_SIGN = -1.0;
 
 const float SUPPLY_VOLTAGE = 12.0;
 const int   ENC_CPR        = 2000;

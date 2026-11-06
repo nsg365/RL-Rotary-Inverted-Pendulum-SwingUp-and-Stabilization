@@ -1,6 +1,6 @@
 """Hardware env 
 
-Serial protocol (matches arduino_firmware.ino):
+Serial protocol (matches prop_on_ard.ino):
     RX (from Arduino at 100 Hz):
         2 bytes sync word 0xABCD (little-endian -> bytes CD AB on wire)
         16 bytes payload: float32 thetaPend, thetaArm, omegaPend, omegaArm
@@ -8,7 +8,8 @@ Serial protocol (matches arduino_firmware.ino):
         4 bytes: float32 voltage in volts
 
 Convention:
-    thetaPend : pendulum angle, 0 = UPRIGHT, +-pi = HANGING (Arduino firmware)
+    thetaPend : pendulum angle as sent by the firmware, 0 = HANGING (encoder zeroed at boot);
+                _to_sim() shifts it so 0 = UPRIGHT, +-pi = HANGING
     thetaArm  : arm angle (free accumulating)
 
 The RL action is in [-1, 1]; it is scaled to +-max_voltage before being sent.
@@ -142,6 +143,8 @@ class FurutaReal(FurutaBase):
         th_pend, th_arm, om_pend, om_arm = self.robot.read_state()
         th_pend = self._to_sim(th_pend)
         self._state = np.array([th_arm, th_pend, om_arm, om_pend], dtype=np.float32)
+        # Unclipped copy for display (step() may clip _state under soft_arm_bound).
+        self.raw_state = self._state.copy()
 
     def _update_state(self, a):
         self._read_and_update(a, self._state)

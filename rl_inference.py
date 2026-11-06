@@ -17,7 +17,11 @@ def main():
         port=args.port,
         action_smoothing=args.action_smoothing,
         max_voltage=args.max_voltage,
-        soft_arm_bound=True, 
+        # Must match training: the model's obs includes the arm angle (7-D, bounded at 150 deg).
+        angle_limits=[np.deg2rad(150.0), None],
+        # Soft bound (as in training): past 150 deg the arm reading is held at 150 but
+        # the episode keeps going, so a wide swing-up is never interrupted.
+        soft_arm_bound=True,
     )
 
     print(f"Loading trained model from {args.model}...")
@@ -27,6 +31,9 @@ def main():
     obs, _ = env.reset()
 
     BALANCE_THRESH = np.deg2rad(15.0)
+    CAUGHT_THRESH = np.deg2rad(10.0)  # board's pure-LQR region
+    FALLEN_THRESH = np.deg2rad(90.0)  # below horizontal after being caught = fell
+    was_balanced = False
 
     try:
         while True:
@@ -43,16 +50,22 @@ def main():
             obs, reward, terminated, truncated, info = env.step(action)
             
             theta_pend = env._state[1]
-            theta_arm = env._state[0]
+            theta_arm = env.raw_state[0]  # real arm angle, not the 150 deg clip
             
             if abs(theta_pend) <= BALANCE_THRESH:
                 print(f"Balancing (LQR) | Pend: {np.rad2deg(theta_pend):5.1f} deg | Arm: {np.rad2deg(theta_arm):5.0f} deg", end="\r")
             else:
                 print(f"Swinging (RL)   | Pend: {np.rad2deg(theta_pend):5.1f} deg | Arm: {np.rad2deg(theta_arm):5.0f} deg", end="\r")
             
-            if terminated or truncated:
-                print("\nEpisode terminated. Resetting hardware...")
+            if abs(theta_pend) <= CAUGHT_THRESH:
+                was_balanced = True
+            fell = was_balanced and abs(theta_pend) > FALLEN_THRESH
+
+            if fell or terminated or truncated:
+                reason = "Pendulum fell" if fell else "Episode terminated"
+                print(f"\n{reason}. Resetting hardware...")
                 obs, _ = env.reset()
+                was_balanced = False
 
     except KeyboardInterrupt:
         print("\nDeployment interrupted by user.")

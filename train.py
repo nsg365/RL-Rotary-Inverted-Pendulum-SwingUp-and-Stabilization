@@ -2,18 +2,14 @@
 furuta-master/scripts/configs/algo/sac.yaml.
 
 Usage:
-    # (optional) pre-fill replay buffer from classical controller CSV
-    python bootstrap_from_csv.py --csv classical_data_real.csv --out buffer.pkl
-
     # train from scratch
-    python train.py --total_timesteps 300000 --replay_buffer buffer.pkl
+    python train.py --total_timesteps 300000
 
     # retrain with a softer voltage ceiling (policy must pump across more swings)
     python train.py --max_voltage 9 --save_dir runs/sac_gsde_9v
 
     # fine-tune an existing model under the new ceiling
-    python train.py -
-    -max_voltage 9 --init_from runs/sac_gsde/best/best_model.zip \
+    python train.py --max_voltage 9 --init_from runs/sac_gsde/best/best_model.zip \
         --save_dir runs/sac_gsde_9v --total_timesteps 100000
 """
 
