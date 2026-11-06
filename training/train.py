@@ -3,14 +3,14 @@ furuta-master/scripts/configs/algo/sac.yaml.
 
 Usage:
     # train from scratch
-    python train.py --total_timesteps 300000
+    python3 -m training.train --total_timesteps 300000
 
     # retrain with a softer voltage ceiling (policy must pump across more swings)
-    python train.py --max_voltage 9 --save_dir runs/sac_gsde_9v
+    python3 -m training.train --max_voltage 9 --save_dir models/sac_gsde_9v
 
     # fine-tune an existing model under the new ceiling
-    python train.py --max_voltage 9 --init_from runs/sac_gsde/best/best_model.zip \
-        --save_dir runs/sac_gsde_9v --total_timesteps 100000
+    python3 -m training.train --max_voltage 9 --init_from models/sac_gsde/best/best_model.zip \
+        --save_dir models/sac_gsde_9v --total_timesteps 100000
 """
 
 import argparse
@@ -23,9 +23,9 @@ from stable_baselines3.common.callbacks import EvalCallback
 from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv
 from gymnasium.wrappers import TimeLimit
 
-from config import CONSTRAINTS, HARDWARE
-from furuta_env import FurutaSim
-from qube_dynamics import QubeDynamics
+from furuta.config import CONSTRAINTS, HARDWARE
+from furuta.sim_env import FurutaSim
+from furuta.dynamics import QubeDynamics
 
 
 def make_env(max_voltage: float, arm_limit_rad: float, soft_arm_bound: bool = False,
@@ -65,7 +65,7 @@ def main():
     p.add_argument("--total_timesteps", type=int, default=300_000)
     p.add_argument("--replay_buffer", type=str, default=None,
                    help="Path to pre-filled replay buffer pickle (optional)")
-    p.add_argument("--save_dir", type=str, default="runs/sac_gsde")
+    p.add_argument("--save_dir", type=str, default="models/sac_gsde")
     p.add_argument("--seed", type=int, default=0)
     p.add_argument("--max_voltage", type=float, default=CONSTRAINTS['max_voltage'],
                    help="Ceiling for motor voltage (action=1 maps to this). Lower = gentler.")

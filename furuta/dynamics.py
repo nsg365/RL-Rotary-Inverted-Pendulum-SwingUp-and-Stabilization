@@ -24,7 +24,7 @@ Equations :
 
 import numpy as np
 
-from config import HARDWARE, CONSTRAINTS
+from .config import HARDWARE, CONSTRAINTS
 
 
 class QubeDynamics:

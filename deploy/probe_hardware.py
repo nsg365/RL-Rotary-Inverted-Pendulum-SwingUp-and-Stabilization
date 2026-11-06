@@ -14,7 +14,7 @@ import argparse
 import time
 import numpy as np
 
-from furuta_real import ArduinoRobot
+from furuta.real_env import ArduinoRobot
 
 
 def main():

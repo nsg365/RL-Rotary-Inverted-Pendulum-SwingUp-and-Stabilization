@@ -18,9 +18,9 @@ import gymnasium as gym
 import numpy as np
 from gymnasium.spaces import Box
 
-from config import CONSTRAINTS
-from furuta_utils import ALPHA, ALPHA_DOT, THETA, THETA_DOT, Timing, VelocityFilter
-from qube_dynamics import QubeDynamics
+from .config import CONSTRAINTS
+from .utils import ALPHA, ALPHA_DOT, THETA, THETA_DOT, Timing, VelocityFilter
+from .dynamics import QubeDynamics
 
 
 # --- reward (repo math, flipped so upright is theta = 0) ---

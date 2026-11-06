@@ -4,10 +4,10 @@ Left  : 3D view of rotary arm + pendulum, with the pendulum tip's recent trace.
 Right : live plots of pendulum angle, arm angle, and motor voltage.
 
 Usage:
-    python visualize.py
-    python visualize.py --model runs/sac_gsde/best/best_model.zip
-    python visualize.py --angle 170                # start pendulum near hanging (deg)
-    python visualize.py --no-model                 # passive (0 V) physics
+    python3 -m sim.visualize
+    python3 -m sim.visualize --model models/sac_gsde/best/best_model.zip
+    python3 -m sim.visualize --angle 170                # start pendulum near hanging (deg)
+    python3 -m sim.visualize --no-model                 # passive (0 V) physics
 """
 
 import argparse
@@ -21,9 +21,9 @@ from gymnasium.wrappers import TimeLimit
 from matplotlib.animation import FuncAnimation
 from mpl_toolkits.mplot3d import Axes3D  # noqa: F401  (registers 3D projection)
 
-from config import CONSTRAINTS, HARDWARE
-from furuta_env import FurutaSim
-from furuta_utils import ALPHA, ALPHA_DOT, THETA, THETA_DOT
+from furuta.config import CONSTRAINTS, HARDWARE
+from furuta.sim_env import FurutaSim
+from furuta.utils import ALPHA, ALPHA_DOT, THETA, THETA_DOT
 
 
 matplotlib.rcParams.update({
@@ -81,15 +81,9 @@ def run(model_path, start_angle_deg=None, episode_len=5000, no_model=False,
 
     model = None
     if not no_model:
-        from sbx import CrossQ
-        # Try CrossQ first, fallback if it's actually PyTorch SAC
-        try:
-            model = CrossQ.load(model_path)
-            print(f"Loaded CrossQ model from {model_path}.")
-        except Exception:
-            from stable_baselines3 import SAC
-            model = SAC.load(model_path)
-            print(f"Loaded Native SAC model from {model_path}.")
+        from stable_baselines3 import SAC
+        model = SAC.load(model_path)
+        print(f"Loaded SAC model from {model_path}.")
 
     obs, _ = env.reset()
     if start_angle_deg is not None:
@@ -228,7 +222,7 @@ def run(model_path, start_angle_deg=None, episode_len=5000, no_model=False,
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser()
-    p.add_argument("--model", default="runs/sac_gsde/best/best_model.zip")
+    p.add_argument("--model", default="models/sac_real/ckpts/sac_real_407500_steps.zip")
     p.add_argument("--angle", type=float, default=None,
                    help="Start pendulum angle in degrees (0 = upright, 180 = hanging)")
     p.add_argument("--no-model", action="store_true", help="Passive 0 V physics")

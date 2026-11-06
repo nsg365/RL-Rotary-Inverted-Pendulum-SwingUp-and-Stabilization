@@ -22,9 +22,9 @@ from typing import Optional
 import numpy as np
 import serial
 
-from config import CONSTRAINTS
-from furuta_env import FurutaBase
-from furuta_utils import ALPHA, ALPHA_DOT, THETA, THETA_DOT
+from .config import CONSTRAINTS
+from .sim_env import FurutaBase
+from .utils import ALPHA, ALPHA_DOT, THETA, THETA_DOT
 
 
 SYNC_WORD = b"\xCD\xAB"

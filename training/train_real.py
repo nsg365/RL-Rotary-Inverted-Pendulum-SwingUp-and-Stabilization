@@ -6,12 +6,12 @@ up from the last checkpoint (model + replay buffer) automatically.
 
 Usage:
     # first run (seed from sim model + sim buffer)
-    python train_real.py --port /dev/cu.usbmodem1401 \
-        --model runs/sac_gsde/best/best_model.zip \
-        --replay_buffer runs/sac_gsde/buffer.pkl
+    python3 -m training.train_real --port /dev/cu.usbmodem1401 \
+        --model models/sac_gsde/best/best_model.zip \
+        --replay_buffer models/sac_gsde/buffer.pkl
 
     # any subsequent run (auto-resumes)
-    python train_real.py --port /dev/cu.usbmodem1401
+    python3 -m training.train_real --port /dev/cu.usbmodem1401
 """
 
 import argparse
@@ -27,8 +27,8 @@ from stable_baselines3.common.callbacks import BaseCallback, CheckpointCallback
 from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.vec_env import DummyVecEnv
 
-from config import CONSTRAINTS
-from furuta_real import FurutaReal
+from furuta.config import CONSTRAINTS
+from furuta.real_env import FurutaReal
 
 
 def latest_checkpoint(ckpt_dir: str):
@@ -106,7 +106,7 @@ def main():
                    help="Sim replay buffer pickle to seed from (ignored if a hardware checkpoint exists)")
     p.add_argument("--total_timesteps", type=int, default=10_000_000,
                    help="Upper bound. Training is meant to be Ctrl+C-stopped; set high.")
-    p.add_argument("--save_dir", default="runs/sac_real")
+    p.add_argument("--save_dir", default="models/sac_real")
     p.add_argument("--save_freq", type=int, default=2_000,
                    help="Checkpoint every N env steps")
     p.add_argument("--action_smoothing", type=float, default=0.3,
@@ -164,6 +164,9 @@ def main():
             print(f"Loaded sim replay buffer: {args.replay_buffer}")
         reset_num_timesteps = True
         seeding_from_sim = True
+
+    # The saved model remembers the log folder it was trained with; keep logs next to the checkpoints.
+    model.tensorboard_log = os.path.join(args.save_dir, "tb")
 
     model.gradient_steps = int(args.gradient_steps)
     print(f"gradient_steps set to {model.gradient_steps}")

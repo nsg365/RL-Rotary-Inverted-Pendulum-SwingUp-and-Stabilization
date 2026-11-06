@@ -6,14 +6,14 @@ import numpy as np
 from stable_baselines3 import SAC
 from gymnasium.wrappers import TimeLimit
 
-from config import CONSTRAINTS
-from furuta_env import FurutaSim
-from furuta_utils import ALPHA, THETA
+from furuta.config import CONSTRAINTS
+from furuta.sim_env import FurutaSim
+from furuta.utils import ALPHA, THETA
 
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument("--model", default="runs/sac_gsde/model.zip")
+    p.add_argument("--model", default="models/sac_real/ckpts/sac_real_407500_steps.zip")
     p.add_argument("--episodes", type=int, default=3)
     p.add_argument("--max_voltage", type=float, default=CONSTRAINTS['max_voltage'])
     p.add_argument("--arm_limit_deg", type=float, default=90.0)

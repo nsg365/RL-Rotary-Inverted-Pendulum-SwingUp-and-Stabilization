@@ -1,8 +1,8 @@
 import argparse
 import numpy as np
 from stable_baselines3 import SAC
-from furuta_real import FurutaReal
-from config import CONSTRAINTS
+from furuta.real_env import FurutaReal
+from furuta.config import CONSTRAINTS
 
 def main():
     p = argparse.ArgumentParser(description="Deploy a trained SAC model to the Furuta pendulum.")
