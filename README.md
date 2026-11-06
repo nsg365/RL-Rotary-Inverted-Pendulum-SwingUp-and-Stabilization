@@ -2,7 +2,7 @@
 
 A low-cost rotary inverted (Furuta) pendulum that swings itself up from hanging and balances upright.
 A **Soft Actor-Critic (SAC)** policy, trained in simulation and fine-tuned on the real rig, does the swing-up.
-A **linear state-feedback (LQR) controller running on the Arduino** does the balancing.
+A **proportional controller running on the Arduino** does the balancing.
 
 - **Result:** 95 of 100 cold-start swing-ups succeeded, and every successful one held balance for the full 60 s window.
 - **Video:** https://youtu.be/YtkpQR3PJXU
@@ -17,14 +17,14 @@ Two controllers run at the same time, and the **Arduino** decides which one driv
 | Pendulum distance from upright | Motor voltage comes from |
 |---|---|
 | more than 20° | RL policy (computed on the laptop, sent over USB) |
-| 10° – 20° | blend: 0.4 × RL + 0.6 × LQR |
-| less than 10° | LQR only (computed on the Arduino) |
+| 10° – 20° | blend: 0.4 × RL + 0.6 × proportional |
+| less than 10° | proportional controller only (computed on the Arduino) |
 
 ```
  Laptop (Python)                              Arduino Mega (prop_on_ard.ino)
  ┌──────────────────────────┐   state @100Hz  ┌─────────────────────────────────┐
  │ rl_inference.py          │ <────────────── │ read encoders, filter velocity  │
- │  SAC policy -> RL voltage│ ──────────────> │ compute LQR, pick/blend voltage │──> motor
+ │  SAC policy -> RL voltage│ ──────────────> │ proportional ctrl, blend voltage│──> motor
  └──────────────────────────┘   RL voltage    └─────────────────────────────────┘
 ```
 
@@ -36,7 +36,7 @@ Because the balancing loop never leaves the Arduino, USB delays and laptop hiccu
 
 | File | What it does |
 |---|---|
-| [`prop_on_ard/prop_on_ard.ino`](prop_on_ard/prop_on_ard.ino) | **Arduino firmware.** Encoders, velocity filter, LQR, RL/LQR arbitration, dead-zone compensation, 100 ms watchdog. |
+| [`prop_on_ard/prop_on_ard.ino`](prop_on_ard/prop_on_ard.ino) | **Arduino firmware.** Encoders, velocity filter, proportional controller, RL/proportional arbitration, dead-zone compensation, 100 ms watchdog. |
 | [`rl_inference.py`](rl_inference.py) | **Run this for the demo.** Loads the trained policy and streams its voltage to the Arduino. |
 | [`furuta_real.py`](furuta_real.py) | Hardware environment: serial protocol, angle conventions, automatic reset routine. |
 | [`furuta_env.py`](furuta_env.py) | Simulation environment, reward, observation format (shared base class with the hardware env). |
@@ -102,7 +102,7 @@ If a positive voltage moves the arm toward a *negative* arm angle, flip `MOTOR_S
 6. **Stop** with Ctrl+C. The script sends 0 V before exiting, and the Arduino also cuts the motor by itself if it hears nothing for 100 ms.
 
 **What you'll see:** the arm recentres, the pendulum settles, and the policy starts pumping it up.
-The terminal shows `Swinging (RL)` or `Balancing (LQR)` with live angles.
+The terminal shows `Swinging (RL)` or `Balancing (P)` with live angles.
 The arm may swing past 150° during swing-up; that's allowed and doesn't interrupt anything.
 If the pendulum falls after having been balanced, the script prints `Pendulum fell. Resetting hardware...`, recentres the arm and tries again.
 
@@ -127,8 +127,8 @@ All in `prop_on_ard.ino` (reflash after changing):
 
 | Setting | Current value | Meaning |
 |---|---|---|
-| `k1`, `k2`, `k3`, `k4` | LQR gains × 0.5, 0.5, 1.0, 0.75 | Gains on arm angle, arm velocity, pendulum angle, pendulum velocity |
-| `BLEND_INNER`, `BLEND_OUTER` | 10°, 20° | Edges of the RL/LQR blend band |
+| `k1`, `k2`, `k3`, `k4` | base gains × 0.5, 0.5, 1.0, 0.75 | Gains on arm angle, arm velocity, pendulum angle, pendulum velocity |
+| `BLEND_INNER`, `BLEND_OUTER` | 10°, 20° | Edges of the RL/proportional blend band |
 | `alpha` | 0.4 | RL share inside the blend band |
 | `DEADZONE`, `THRESH` | 0.5 V | Motor static-friction compensation |
 
@@ -156,7 +156,7 @@ python3 train_real.py --port /dev/cu.usbmodemXXXX --arm_limit_deg 150 --soft_arm
 - Training runs until Ctrl+C and saves a checkpoint (model + replay buffer) every 2000 steps.
 - `--arm_limit_deg 150` must match the model, or it won't load.
 - `--ent_coef 0.05` fixes the exploration level; automatic tuning broke checkpoint reloading.
-- Within 20° of upright the Arduino's LQR takes over, so the policy only learns the swing-up part.
+- Within 20° of upright the Arduino's proportional controller takes over, so the policy only learns the swing-up part.
 
 **Running a policy in simulation:**
 ```

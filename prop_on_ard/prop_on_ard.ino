@@ -26,7 +26,7 @@ const float THRESH   = 0.5;
 const float BLEND_INNER = 10.0 * (PI / 180.0); // 10 degrees in radians
 const float BLEND_OUTER = 20.0 * (PI / 180.0); // 20 degrees in radians
 
-// LQR Gains
+// Proportional controller gains
 float k1 = -4.4681 * 0.5;
 float k2 = -1.6210 * 0.5; 
 float k3 = -39.5037 * 1.0; 
@@ -123,27 +123,27 @@ void loop() {
     Serial.write((byte*)&syncWord, sizeof(syncWord));
     Serial.write((byte*)&pkt, sizeof(pkt));
 
-    // 2. Local LQR Math Transformation
-    float pendLQR = pendAngle;
-    if (pendLQR > 0) pendLQR = PI - pendLQR;
-    else pendLQR = -1 * PI - pendLQR;
+    // 2. Pendulum angle relative to upright, for the proportional controller
+    float pendErr = pendAngle;
+    if (pendErr > 0) pendErr = PI - pendErr;
+    else pendErr = -1 * PI - pendErr;
     
     // Wrap to [-PI, PI]
-    while (pendLQR > PI) pendLQR -= 2.0 * PI;
-    while (pendLQR < -PI) pendLQR += 2.0 * PI;
+    while (pendErr > PI) pendErr -= 2.0 * PI;
+    while (pendErr < -PI) pendErr += 2.0 * PI;
 
-    pendLQR = -1 * pendLQR;
+    pendErr = -1 * pendErr;
 
     // 3. Hardware Override & SAC Blend Logic
-    float u_lqr = -(k1 * armAngle + k2 * armVel + k3 * pendLQR + k4 * pendVel);
+    float u_p = -(k1 * armAngle + k2 * armVel + k3 * pendErr + k4 * pendVel);
     float u_rl  = python_voltage;
     float u     = 0.0;
     
-    float abs_theta = fabs(pendLQR); // Use fabs() for floats
+    float abs_theta = fabs(pendErr); // Use fabs() for floats
 
     if (abs_theta <= BLEND_INNER) {
-      // Within 10 degrees: Pure Proportional (LQR)
-      u = u_lqr;
+      // Within 10 degrees: pure proportional controller
+      u = u_p;
     } 
     else if (abs_theta >= BLEND_OUTER) {
       // Beyond 20 degrees: Pure RL
@@ -154,7 +154,7 @@ void loop() {
       // alpha = 0.0 at 10 deg, alpha = 1.0 at 20 deg
       //float alpha = (abs_theta - BLEND_INNER) / (BLEND_OUTER - BLEND_INNER);
       float alpha = 0.4;
-      u = (alpha * u_rl) + ((1.0 - alpha) * u_lqr);
+      u = (alpha * u_rl) + ((1.0 - alpha) * u_p);
     }
 
     applyVoltage(u);

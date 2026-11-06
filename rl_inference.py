@@ -31,7 +31,7 @@ def main():
     obs, _ = env.reset()
 
     BALANCE_THRESH = np.deg2rad(15.0)
-    CAUGHT_THRESH = np.deg2rad(10.0)  # board's pure-LQR region
+    CAUGHT_THRESH = np.deg2rad(10.0)  # board's pure proportional-controller region
     FALLEN_THRESH = np.deg2rad(90.0)  # below horizontal after being caught = fell
     was_balanced = False
 
@@ -53,7 +53,7 @@ def main():
             theta_arm = env.raw_state[0]  # real arm angle, not the 150 deg clip
             
             if abs(theta_pend) <= BALANCE_THRESH:
-                print(f"Balancing (LQR) | Pend: {np.rad2deg(theta_pend):5.1f} deg | Arm: {np.rad2deg(theta_arm):5.0f} deg", end="\r")
+                print(f"Balancing (P)   | Pend: {np.rad2deg(theta_pend):5.1f} deg | Arm: {np.rad2deg(theta_arm):5.0f} deg", end="\r")
             else:
                 print(f"Swinging (RL)   | Pend: {np.rad2deg(theta_pend):5.1f} deg | Arm: {np.rad2deg(theta_arm):5.0f} deg", end="\r")
             
